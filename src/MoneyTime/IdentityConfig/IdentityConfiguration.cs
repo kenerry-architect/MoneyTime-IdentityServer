@@ -12,11 +12,16 @@ namespace MoneyTime.IdentityConfig
             var apiResources = new List<ApiResource>();
             foreach (var item in identitySettings.ApiResources ?? Enumerable.Empty<IdentityApiResource>())
             {
-                apiResources.Add(new ApiResource
+                var apiResource = new ApiResource
                 {
                     Name = item.Name,
-                    DisplayName = item.DisplayName
-                });
+                    DisplayName = item.DisplayName,
+                };
+
+                foreach (var itemScope in item.Scopes)
+                    apiResource.Scopes.Add(new Scope(itemScope));
+
+                apiResources.Add(apiResource);
             }
 
             return apiResources;
@@ -32,12 +37,14 @@ namespace MoneyTime.IdentityConfig
                     ClientId = item.ClientId,
                     ClientName = item.ClientName,
                     ClientUri = item.ClientUri,
+                    AllowAccessTokensViaBrowser = true,
                     AllowedGrantTypes = GrantTypes.ClientCredentials,
                     ClientSecrets =
                     {
-                        new Secret(item.Secret.Sha256())
+                        new Secret(item.ClientSecret.Sha256())
                     },
-                    AllowedScopes = item.AllowedScopes,
+
+                    AllowedScopes = item.AllowedScopes.ToList(),
                     AccessTokenLifetime = item.AccessTokenLifetime
                 });
             }

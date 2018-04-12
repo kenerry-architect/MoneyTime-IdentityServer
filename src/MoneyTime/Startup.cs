@@ -20,6 +20,15 @@ namespace MoneyTime
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll",
+                    builder => builder
+                        .AllowAnyMethod()
+                        .AllowAnyOrigin()
+                        .AllowAnyHeader());
+            });
+
             services.Configure<IdentitySettings>(Configuration);
             var settings = Configuration.Get<IdentitySettings>();
             services.AddSingleton(settings);
@@ -28,6 +37,7 @@ namespace MoneyTime
             (
                 options =>
                 {
+                    //options.Cors = new CorsOptions{};
                     options.IssuerUri = settings.IdentityEndPoint;
                     options.Endpoints.EnableDiscoveryEndpoint = true;
                     options.Endpoints.EnableTokenEndpoint = true;
@@ -40,7 +50,8 @@ namespace MoneyTime
                     options.Endpoints.EnableTokenRevocationEndpoint = false;
                 }
             )
-            .AddDeveloperSigningCredential()
+            //.AddDeveloperSigningCredential()
+                .AddDeveloperSigningCredential()
             .AddInMemoryApiResources(IdentityConfiguration.GetApiResources(settings))
             .AddInMemoryClients(IdentityConfiguration.GetClients(settings));
 
@@ -51,9 +62,12 @@ namespace MoneyTime
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment()) app.UseDeveloperExceptionPage();
+            app.UseCors("AllowAll");
 
+            //app.UseStaticFiles();
+            //app.UseAuthentication();
             app.UseIdentityServer();
-            app.UseMvcWithDefaultRoute();
+            app.UseMvc();
         }
     }
 }
